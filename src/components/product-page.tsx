@@ -39,7 +39,7 @@ export function ProductPage({ product }: ProductPageProps) {
   const selectedVariant =
     product.variants.find((variant) => variant.id === selectedVariantId) ??
     product.variants.find((variant) => variant.availableForSale);
-  const image = product.images[selectedImage];
+  const image = product.images[0];
 
   return (
     <>
