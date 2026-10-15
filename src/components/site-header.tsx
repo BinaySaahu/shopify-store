@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/icons";
+import Link from "next/link";
 
 type SiteHeaderProps = {
   itemCount: number;
@@ -10,12 +11,12 @@ type SiteHeaderProps = {
 export function SiteHeader({ itemCount, onOpenCart }: SiteHeaderProps) {
   return (
     <header className="site-header">
-      <a aria-label="Innovist home" className="wordmark" href="#">
+      <Link aria-label="Innovist home" className="wordmark" href="/">
         innovist<span>.</span>
-      </a>
+      </Link>
       <nav aria-label="Main navigation" className="header-nav">
-        <a href="#shop">Shop all</a>
-        <a href="#about">Our approach</a>
+        <Link href="/#shop">Shop all</Link>
+        <Link href="/#about">Our approach</Link>
       </nav>
       <button
         aria-label={`Open shopping bag, ${itemCount} items`}

@@ -14,6 +14,7 @@ The `.env*` files are ignored by Git. Do not put secret values in `NEXT_PUBLIC_*
 ## Features
 
 - Shopify Storefront GraphQL products, images, price ranges, variants, and availability.
+- Product detail pages with image galleries, variant selection, quantity controls, and cart drawer integration.
 - Search, product-type filtering, and price sorting.
 - Variant-aware cart with quantity controls, removal, item count, subtotal, and local browser persistence.
 - Shopify cart creation and hosted checkout handoff.

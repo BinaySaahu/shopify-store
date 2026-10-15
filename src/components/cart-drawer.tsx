@@ -8,7 +8,7 @@ type CartResult = { cart?: { id: string; lines: CartLine[] }; error?: string };
 
 export type CartDrawerHandle = {
   open: () => void;
-  add: (variant: ProductVariant) => void;
+  add: (variant: ProductVariant, quantity?: number) => void;
 };
 
 type CartDrawerProps = {
@@ -101,14 +101,16 @@ export const CartDrawer = forwardRef<CartDrawerHandle, CartDrawerProps>(
 
     useImperativeHandle(ref, () => ({
       open: () => setOpen(true),
-      add: (variant) => {
+      add: (variant, quantity = 1) => {
         setOpen(true);
         if (loading || updatingRef.current) return;
-        if (lines.find((line) => line.variant.id === variant.id)?.quantity === 99) {
+        const existingQuantity =
+          lines.find((line) => line.variant.id === variant.id)?.quantity ?? 0;
+        if (existingQuantity + quantity > 99) {
           setError("You’ve reached the maximum quantity for this item.");
           return;
         }
-        void updateCart({ action: "add", merchandiseId: variant.id, quantity: 1 });
+        void updateCart({ action: "add", merchandiseId: variant.id, quantity });
       },
     }), [loading, lines, updateCart]);
 

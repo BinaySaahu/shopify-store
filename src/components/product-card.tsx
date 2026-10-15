@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Icon } from "@/components/icons";
 import type { Product, ProductVariant } from "@/types/store";
+import Link from "next/link";
 
 type ProductCardProps = {
   product: Product;
@@ -18,8 +19,14 @@ function formatPrice(amount: string, currencyCode: string) {
   }).format(Number(amount));
 }
 
-export function ProductCard({ product, onAdd, addDisabled = false }: ProductCardProps) {
-  const availableVariants = product.variants.filter((variant) => variant.availableForSale);
+export function ProductCard({
+  product,
+  onAdd,
+  addDisabled = false,
+}: ProductCardProps) {
+  const availableVariants = product.variants.filter(
+    (variant) => variant.availableForSale,
+  );
   const [variantId, setVariantId] = useState(availableVariants[0]?.id ?? "");
   const selectedVariant =
     availableVariants.find((variant) => variant.id === variantId) ??
@@ -31,18 +38,35 @@ export function ProductCard({ product, onAdd, addDisabled = false }: ProductCard
 
   return (
     <article className="product-card">
-      <div
-        aria-label={image?.altText || product.title}
-        className={`product-image${image ? "" : " product-image-placeholder"}`}
-        role="img"
-        style={image ? { backgroundImage: `url("${image.url}")` } : undefined}
+      <Link
+        aria-label={`View ${product.title}`}
+        className="product-detail-link"
+        href={`/product/${encodeURIComponent(product.handle)}`}
       >
-        {!product.availableForSale && <span className="sold-out-tag">Sold out</span>}
-        {product.productType && <span className="product-type-tag">{product.productType}</span>}
-      </div>
+        <div
+          aria-label={image?.altText || product.title}
+          className={`product-image${image ? "" : " product-image-placeholder"}`}
+          role="img"
+          style={image ? { backgroundImage: `url("${image.url}")` } : undefined}
+        >
+          {!product.availableForSale && (
+            <span className="sold-out-tag">Sold out</span>
+          )}
+          {product.productType && (
+            <span className="product-type-tag">{product.productType}</span>
+          )}
+        </div>
+      </Link>
       <div className="product-card-content">
         <div className="product-title-row">
-          <h3>{product.title}</h3>
+          <h3>
+            <Link
+              className="product-title-link"
+              href={`/product/${encodeURIComponent(product.handle)}`}
+            >
+              {product.title}
+            </Link>
+          </h3>
           <span className="product-price">
             {isRange && <span className="price-from">from </span>}
             {formatPrice(
@@ -55,7 +79,9 @@ export function ProductCard({ product, onAdd, addDisabled = false }: ProductCard
         <div className="product-card-actions">
           {availableVariants.length > 1 ? (
             <label className="variant-select-wrap">
-              <span className="sr-only">Choose an option for {product.title}</span>
+              <span className="sr-only">
+                Choose an option for {product.title}
+              </span>
               <select
                 aria-label={`Choose an option for ${product.title}`}
                 onChange={(event) => setVariantId(event.target.value)}
@@ -69,7 +95,9 @@ export function ProductCard({ product, onAdd, addDisabled = false }: ProductCard
               </select>
             </label>
           ) : (
-            <span className="variant-single">{selectedVariant?.title || "Unavailable"}</span>
+            <span className="variant-single">
+              {selectedVariant?.title || "Unavailable"}
+            </span>
           )}
           <button
             aria-label={`Add ${product.title} to bag`}

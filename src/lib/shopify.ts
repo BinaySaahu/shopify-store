@@ -130,3 +130,78 @@ export async function getProducts(): Promise<Product[]> {
     variants: product.variants.nodes,
   }));
 }
+
+type ShopifyProduct = Omit<Product, "images" | "variants"> & {
+  images: { nodes: Product["images"] };
+  variants: { nodes: Product["variants"] };
+};
+
+const PRODUCT_FIELDS = `
+  id
+  title
+  handle
+  description
+  productType
+  availableForSale
+  images(first: 10) {
+    nodes {
+      id
+      url
+      altText
+    }
+  }
+  priceRange {
+    minVariantPrice {
+      amount
+      currencyCode
+    }
+    maxVariantPrice {
+      amount
+      currencyCode
+    }
+  }
+  variants(first: 100) {
+    nodes {
+      id
+      title
+      availableForSale
+      price {
+        amount
+        currencyCode
+      }
+    }
+  }
+`;
+
+const PRODUCT_BY_ID_QUERY = `
+  query GetProduct($id: ID!) {
+    product(id: $id) { ${PRODUCT_FIELDS} }
+  }
+`;
+
+const PRODUCT_BY_HANDLE_QUERY = `
+  query GetProductByHandle($handle: String!) {
+    product(handle: $handle) { ${PRODUCT_FIELDS} }
+  }
+`;
+
+export async function getProduct(identifier: string): Promise<Product | null> {
+  const isProductId = /^gid:\/\/shopify\/Product\/\d+$/.test(identifier);
+  if (!isProductId && !/^[a-zA-Z0-9][a-zA-Z0-9-]*$/.test(identifier)) {
+    return null;
+  }
+
+  const result = await storefrontRequest<{ product: ShopifyProduct | null }>(
+    isProductId ? PRODUCT_BY_ID_QUERY : PRODUCT_BY_HANDLE_QUERY,
+    isProductId ? { id: identifier } : { handle: identifier },
+    300,
+  );
+  const product = result.product;
+  if (!product) return null;
+
+  return {
+    ...product,
+    images: product.images.nodes,
+    variants: product.variants.nodes,
+  };
+}
