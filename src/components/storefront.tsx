@@ -184,7 +184,6 @@ export function Storefront() {
                 </div>
               )}
             </div>
-            <ChatAssistant products={products} />
           </div>
         </section>
 
@@ -198,6 +197,11 @@ export function Storefront() {
         onItemCountChange={handleCartItemCountChange}
         onReadyChange={handleCartReadyChange}
         ref={cartDrawerRef}
+      />
+      <ChatAssistant
+        addDisabled={!cartReady}
+        onAddToCart={(_product, variant) => cartDrawerRef.current?.add(variant)}
+        products={products}
       />
     </>
   );
