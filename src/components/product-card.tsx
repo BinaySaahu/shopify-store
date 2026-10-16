@@ -8,6 +8,8 @@ import Link from "next/link";
 type ProductCardProps = {
   product: Product;
   onAdd: (product: Product, variant: ProductVariant) => void;
+  cartQuantities: Record<string, number>;
+  onQuantityChange: (variant: ProductVariant, quantity: number) => void;
   addDisabled?: boolean;
 };
 
@@ -22,6 +24,8 @@ function formatPrice(amount: string, currencyCode: string) {
 export function ProductCard({
   product,
   onAdd,
+  cartQuantities,
+  onQuantityChange,
   addDisabled = false,
 }: ProductCardProps) {
   const availableVariants = product.variants.filter(
@@ -31,6 +35,7 @@ export function ProductCard({
   const selectedVariant =
     availableVariants.find((variant) => variant.id === variantId) ??
     availableVariants[0];
+  const quantity = selectedVariant ? cartQuantities[selectedVariant.id] ?? 0 : 0;
   const image = product.images[0];
   const isRange =
     product.priceRange.minVariantPrice.amount !==
@@ -99,16 +104,38 @@ export function ProductCard({
               {selectedVariant?.title || "Unavailable"}
             </span>
           )}
-          <button
-            aria-label={`Add ${product.title} to bag`}
-            className="add-button"
-            disabled={!selectedVariant || addDisabled}
-            onClick={() => selectedVariant && onAdd(product, selectedVariant)}
-            type="button"
-          >
-            <Icon name="plus" />
-            <span>Add</span>
-          </button>
+          {quantity > 0 && selectedVariant ? (
+            <div aria-label={`${product.title} quantity in bag`} className="product-card-quantity">
+              <button
+                aria-label={`Decrease ${product.title} quantity`}
+                disabled={addDisabled}
+                onClick={() => onQuantityChange(selectedVariant, quantity - 1)}
+                type="button"
+              >
+                <Icon name="minus" />
+              </button>
+              <span>{quantity}</span>
+              <button
+                aria-label={`Increase ${product.title} quantity`}
+                disabled={addDisabled || quantity >= 99}
+                onClick={() => onQuantityChange(selectedVariant, quantity + 1)}
+                type="button"
+              >
+                <Icon name="plus" />
+              </button>
+            </div>
+          ) : (
+            <button
+              aria-label={`Add ${product.title} to bag`}
+              className="add-button"
+              disabled={!selectedVariant || addDisabled}
+              onClick={() => selectedVariant && onAdd(product, selectedVariant)}
+              type="button"
+            >
+              <Icon name="plus" />
+              <span>Add</span>
+            </button>
+          )}
         </div>
       </div>
     </article>

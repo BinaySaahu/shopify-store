@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Innovist — Good things, well chosen",
+  title: "Care — Good things, well chosen",
   description: "Thoughtfully made essentials for the little moments that make a day.",
 };
 

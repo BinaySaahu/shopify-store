@@ -26,6 +26,7 @@ export function ProductPage({ product }: ProductPageProps) {
   );
   const [quantity, setQuantity] = useState(1);
   const [itemCount, setItemCount] = useState(0);
+  const [cartQuantities, setCartQuantities] = useState<Record<string, number>>({});
   const [cartReady, setCartReady] = useState(false);
   const cartDrawerRef = useRef<CartDrawerHandle>(null);
 
@@ -35,11 +36,20 @@ export function ProductPage({ product }: ProductPageProps) {
   const handleCartReadyChange = useCallback((ready: boolean) => {
     setCartReady(ready);
   }, []);
+  const handleVariantQuantitiesChange = useCallback(
+    (quantities: Record<string, number>) => {
+      setCartQuantities(quantities);
+    },
+    [],
+  );
 
   const selectedVariant =
     product.variants.find((variant) => variant.id === selectedVariantId) ??
     product.variants.find((variant) => variant.availableForSale);
-  const image = product.images[0];
+  const image = product.images[selectedImage];
+  const selectedVariantQuantity = selectedVariant
+    ? cartQuantities[selectedVariant.id] ?? 0
+    : 0;
 
   return (
     <>
@@ -113,7 +123,43 @@ export function ProductPage({ product }: ProductPageProps) {
               </label>
             )}
 
-            {selectedVariant ? (
+            {selectedVariant ? selectedVariantQuantity > 0 ? (
+              <div className="product-purchase-row">
+                <div
+                  aria-label={`${product.title} quantity in bag`}
+                  className="product-quantity"
+                >
+                  <button
+                    aria-label="Decrease quantity"
+                    disabled={!cartReady}
+                    onClick={() =>
+                      cartDrawerRef.current?.setVariantQuantity(
+                        selectedVariant.id,
+                        selectedVariantQuantity - 1,
+                      )
+                    }
+                    type="button"
+                  >
+                    <Icon name="minus" />
+                  </button>
+                  <span>{selectedVariantQuantity}</span>
+                  <button
+                    aria-label="Increase quantity"
+                    disabled={!cartReady || selectedVariantQuantity >= 99}
+                    onClick={() =>
+                      cartDrawerRef.current?.setVariantQuantity(
+                        selectedVariant.id,
+                        selectedVariantQuantity + 1,
+                      )
+                    }
+                    type="button"
+                  >
+                    <Icon name="plus" />
+                  </button>
+                </div>
+                <span className="product-added-label">In your bag</span>
+              </div>
+            ) : (
               <div className="product-purchase-row">
                 <div aria-label="Quantity" className="product-quantity">
                   <button
@@ -157,6 +203,7 @@ export function ProductPage({ product }: ProductPageProps) {
       <CartDrawer
         onItemCountChange={handleItemCountChange}
         onReadyChange={handleCartReadyChange}
+        onVariantQuantitiesChange={handleVariantQuantitiesChange}
         ref={cartDrawerRef}
       />
     </>

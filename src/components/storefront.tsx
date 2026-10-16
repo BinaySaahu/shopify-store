@@ -13,6 +13,7 @@ type ProductResult = { products?: Product[]; error?: string };
 export function Storefront() {
   const [products, setProducts] = useState<Product[]>([]);
   const [itemCount, setItemCount] = useState(0);
+  const [cartQuantities, setCartQuantities] = useState<Record<string, number>>({});
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All products");
   const [sort, setSort] = useState("featured");
@@ -52,6 +53,12 @@ export function Storefront() {
   const handleCartReadyChange = useCallback((ready: boolean) => {
     setCartReady(ready);
   }, []);
+  const handleVariantQuantitiesChange = useCallback(
+    (quantities: Record<string, number>) => {
+      setCartQuantities(quantities);
+    },
+    [],
+  );
 
   const categories = useMemo(
     () => ["All products", ...new Set(products.map((product) => product.productType).filter(Boolean))],
@@ -104,7 +111,7 @@ export function Storefront() {
             <div className="hero-leaf leaf-two" />
             <div className="hero-leaf leaf-three" />
             <span className="hero-art-caption">A softer kind<br />of everyday</span>
-            <span className="hero-art-index">01 / 03</span>
+            {/* <span className="hero-art-index">01 / 03</span> */}
           </div>
           <div className="hero-bottom">
             <span>DESIGNED FOR DAILY LIFE</span>
@@ -170,7 +177,11 @@ export function Storefront() {
                         addDisabled={!cartReady}
                         key={product.id}
                         onAdd={(_product, variant) => cartDrawerRef.current?.add(variant)}
+                        onQuantityChange={(variant, quantity) =>
+                          cartDrawerRef.current?.setVariantQuantity(variant.id, quantity)
+                        }
                         product={product}
+                        cartQuantities={cartQuantities}
                       />
                     ))}
                   </div>
@@ -188,14 +199,15 @@ export function Storefront() {
         </section>
 
         <footer className="site-footer">
-          <a aria-label="Innovist home" className="wordmark" href="#">innovist<span>.</span></a>
+          <a aria-label="Care home" className="wordmark" href="#">care<span>.</span></a>
           <p>Everyday, a little more considered.</p>
-          <span>© {new Date().getFullYear()} INNOVIST</span>
+          <span>© {new Date().getFullYear()} CARE</span>
         </footer>
       </main>
       <CartDrawer
         onItemCountChange={handleCartItemCountChange}
         onReadyChange={handleCartReadyChange}
+        onVariantQuantitiesChange={handleVariantQuantitiesChange}
         ref={cartDrawerRef}
       />
       <ChatAssistant

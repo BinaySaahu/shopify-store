@@ -9,11 +9,13 @@ type CartResult = { cart?: { id: string; lines: CartLine[] }; error?: string };
 export type CartDrawerHandle = {
   open: () => void;
   add: (variant: ProductVariant, quantity?: number) => void;
+  setVariantQuantity: (variantId: string, quantity: number) => void;
 };
 
 type CartDrawerProps = {
   onItemCountChange: (count: number) => void;
   onReadyChange: (ready: boolean) => void;
+  onVariantQuantitiesChange: (quantities: Record<string, number>) => void;
 };
 
 function formatPrice(amount: number, currencyCode: string) {
@@ -25,7 +27,10 @@ function formatPrice(amount: number, currencyCode: string) {
 }
 
 export const CartDrawer = forwardRef<CartDrawerHandle, CartDrawerProps>(
-  function CartDrawer({ onItemCountChange, onReadyChange }, ref) {
+  function CartDrawer(
+    { onItemCountChange, onReadyChange, onVariantQuantitiesChange },
+    ref,
+  ) {
     const [lines, setLines] = useState<CartLine[]>([]);
     const [cartId, setCartId] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
@@ -39,7 +44,7 @@ export const CartDrawer = forwardRef<CartDrawerHandle, CartDrawerProps>(
     useEffect(() => {
       void (async () => {
         try {
-          const savedCartId = window.localStorage.getItem("innovist-cart-id");
+          const savedCartId = window.localStorage.getItem("care-cart-id");
           if (savedCartId) {
             const response = await fetch(`/api/cart?cartId=${encodeURIComponent(savedCartId)}`);
             const result = (await response.json()) as CartResult;
@@ -54,7 +59,7 @@ export const CartDrawer = forwardRef<CartDrawerHandle, CartDrawerProps>(
           console.error("Unable to restore the saved shopping bag:", message);
           setError(message);
           try {
-            window.localStorage.removeItem("innovist-cart-id");
+            window.localStorage.removeItem("care-cart-id");
           } catch (storageError) {
             console.error("Unable to clear the saved shopping bag ID:", storageError);
           }
@@ -68,6 +73,12 @@ export const CartDrawer = forwardRef<CartDrawerHandle, CartDrawerProps>(
     useEffect(() => {
       onItemCountChange(lines.reduce((count, line) => count + line.quantity, 0));
     }, [lines, onItemCountChange]);
+
+    useEffect(() => {
+      onVariantQuantitiesChange(
+        Object.fromEntries(lines.map((line) => [line.variant.id, line.quantity])),
+      );
+    }, [lines, onVariantQuantitiesChange]);
 
     const updateCart = useCallback(async (body: Record<string, unknown>) => {
       if (loading || updatingRef.current) return;
@@ -87,7 +98,7 @@ export const CartDrawer = forwardRef<CartDrawerHandle, CartDrawerProps>(
         setCartId(result.cart.id);
         setLines(result.cart.lines);
         try {
-          window.localStorage.setItem("innovist-cart-id", result.cart.id);
+          window.localStorage.setItem("care-cart-id", result.cart.id);
         } catch (storageError) {
           console.error("Unable to save the shopping bag ID:", storageError);
         }
@@ -111,6 +122,15 @@ export const CartDrawer = forwardRef<CartDrawerHandle, CartDrawerProps>(
           return;
         }
         void updateCart({ action: "add", merchandiseId: variant.id, quantity });
+      },
+      setVariantQuantity: (variantId, quantity) => {
+        const line = lines.find((item) => item.variant.id === variantId);
+        if (!line || loading || updatingRef.current) return;
+        if (quantity < 1) {
+          void updateCart({ action: "remove", lineId: line.id });
+        } else if (quantity <= 99) {
+          void updateCart({ action: "update", lineId: line.id, quantity });
+        }
       },
     }), [loading, lines, updateCart]);
 
