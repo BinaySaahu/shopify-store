@@ -173,12 +173,6 @@ const PRODUCT_FIELDS = `
   }
 `;
 
-const PRODUCT_BY_ID_QUERY = `
-  query GetProduct($id: ID!) {
-    product(id: $id) { ${PRODUCT_FIELDS} }
-  }
-`;
-
 const PRODUCT_BY_HANDLE_QUERY = `
   query GetProductByHandle($handle: String!) {
     product(handle: $handle) { ${PRODUCT_FIELDS} }
@@ -186,14 +180,10 @@ const PRODUCT_BY_HANDLE_QUERY = `
 `;
 
 export async function getProduct(identifier: string): Promise<Product | null> {
-  const isProductId = /^gid:\/\/shopify\/Product\/\d+$/.test(identifier);
-  if (!isProductId && !/^[a-zA-Z0-9][a-zA-Z0-9-]*$/.test(identifier)) {
-    return null;
-  }
-
+  
   const result = await storefrontRequest<{ product: ShopifyProduct | null }>(
-    isProductId ? PRODUCT_BY_ID_QUERY : PRODUCT_BY_HANDLE_QUERY,
-    isProductId ? { id: identifier } : { handle: identifier },
+    PRODUCT_BY_HANDLE_QUERY,
+    { handle: identifier },
     300,
   );
   const product = result.product;

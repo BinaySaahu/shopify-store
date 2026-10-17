@@ -88,6 +88,7 @@ export async function POST(request: Request) {
       answer?: unknown;
       recommendations?: unknown;
     };
+    console.log("Shopping assistant response:", parsed);
     if (
       typeof parsed.answer !== "string" ||
       !Array.isArray(parsed.recommendations)
@@ -117,7 +118,7 @@ export async function POST(request: Request) {
       }));
 
     return NextResponse.json({
-      answer: parsed.answer.slice(0, 1000),
+      answer: parsed.answer,
       recommendations,
     });
   } catch (error) {
